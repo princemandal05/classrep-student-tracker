@@ -94,7 +94,9 @@ def init_db():
         cursor.close()
         conn.close()
     except psycopg2.Error as err:
-        print(f"Error: {err}")
+        print(f"Database initialization error: {err}")
+    except Exception as e:
+        print(f"Unexpected error during DB init: {e}")
 
 # Helper function to get database connection
 def get_db():
@@ -176,33 +178,41 @@ def dashboard():
 def students():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    
+
     conn = get_db()
+    if conn is None:
+        flash('Database connection failed!')
+        return redirect(url_for('login'))
+
     cursor = get_dict_cursor(conn)
     cursor.execute("SELECT * FROM students ORDER BY roll_number")
     students = cursor.fetchall()
     cursor.close()
     conn.close()
-    
+
     return render_template('students.html', students=students)
 
 @app.route('/add_student', methods=['POST'])
 def add_student():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    
+
     roll_number = request.form['roll_number']
     name = request.form['name']
     class_name = request.form['class_name']
-    
+
     conn = get_db()
+    if conn is None:
+        flash('Database connection failed!')
+        return redirect(url_for('students'))
+
     cursor = conn.cursor()
     cursor.execute("INSERT INTO students (roll_number, name, class_name) VALUES (%s, %s, %s)",
                    (roll_number, name, class_name))
     conn.commit()
     cursor.close()
     conn.close()
-    
+
     flash('Student added successfully!')
     return redirect(url_for('students'))
 
@@ -210,14 +220,18 @@ def add_student():
 def delete_student(student_id):
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    
+
     conn = get_db()
+    if conn is None:
+        flash('Database connection failed!')
+        return redirect(url_for('students'))
+
     cursor = conn.cursor()
     cursor.execute("DELETE FROM students WHERE id = %s", (student_id,))
     conn.commit()
     cursor.close()
     conn.close()
-    
+
     flash('Student deleted successfully!')
     return redirect(url_for('students'))
 
@@ -226,44 +240,52 @@ def delete_student(student_id):
 def attendance():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    
+
     conn = get_db()
+    if conn is None:
+        flash('Database connection failed!')
+        return redirect(url_for('login'))
+
     cursor = get_dict_cursor(conn)
-    
+
     # Get students and attendance records
     cursor.execute("SELECT * FROM students ORDER BY roll_number")
     students = cursor.fetchall()
-    
+
     cursor.execute('''
-        SELECT a.*, s.name, s.roll_number 
-        FROM attendance a 
-        JOIN students s ON a.student_id = s.id 
+        SELECT a.*, s.name, s.roll_number
+        FROM attendance a
+        JOIN students s ON a.student_id = s.id
         ORDER BY a.date DESC LIMIT 20
     ''')
     attendance_records = cursor.fetchall()
     cursor.close()
     conn.close()
-    
+
     return render_template('attendance.html', students=students, attendance_records=attendance_records)
 
 @app.route('/add_attendance', methods=['POST'])
 def add_attendance():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    
+
     student_id = request.form['student_id']
     date = request.form['date']
     status = request.form['status']
     notes = request.form['notes']
-    
+
     conn = get_db()
+    if conn is None:
+        flash('Database connection failed!')
+        return redirect(url_for('attendance'))
+
     cursor = conn.cursor()
     cursor.execute("INSERT INTO attendance (student_id, date, status, notes) VALUES (%s, %s, %s, %s)",
                    (student_id, date, status, notes))
     conn.commit()
     cursor.close()
     conn.close()
-    
+
     flash('Attendance recorded successfully!')
     return redirect(url_for('attendance'))
 
@@ -272,44 +294,52 @@ def add_attendance():
 def behavior():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    
+
     conn = get_db()
+    if conn is None:
+        flash('Database connection failed!')
+        return redirect(url_for('login'))
+
     cursor = get_dict_cursor(conn)
-    
+
     cursor.execute("SELECT * FROM students ORDER BY roll_number")
     students = cursor.fetchall()
-    
+
     cursor.execute('''
-        SELECT b.*, s.name, s.roll_number 
-        FROM behavior b 
-        JOIN students s ON b.student_id = s.id 
+        SELECT b.*, s.name, s.roll_number
+        FROM behavior b
+        JOIN students s ON b.student_id = s.id
         ORDER BY b.date DESC LIMIT 20
     ''')
     behavior_records = cursor.fetchall()
     cursor.close()
     conn.close()
-    
+
     return render_template('behavior.html', students=students, behavior_records=behavior_records)
 
 @app.route('/add_behavior', methods=['POST'])
 def add_behavior():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    
+
     student_id = request.form['student_id']
     date = request.form['date']
     incident_type = request.form['incident_type']
     description = request.form['description']
     action_taken = request.form['action_taken']
-    
+
     conn = get_db()
+    if conn is None:
+        flash('Database connection failed!')
+        return redirect(url_for('behavior'))
+
     cursor = conn.cursor()
     cursor.execute("INSERT INTO behavior (student_id, date, incident_type, description, action_taken) VALUES (%s, %s, %s, %s, %s)",
                    (student_id, date, incident_type, description, action_taken))
     conn.commit()
     cursor.close()
     conn.close()
-    
+
     flash('Behavior incident recorded successfully!')
     return redirect(url_for('behavior'))
 
@@ -318,45 +348,53 @@ def add_behavior():
 def academics():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    
+
     conn = get_db()
+    if conn is None:
+        flash('Database connection failed!')
+        return redirect(url_for('login'))
+
     cursor = get_dict_cursor(conn)
-    
+
     cursor.execute("SELECT * FROM students ORDER BY roll_number")
     students = cursor.fetchall()
-    
+
     cursor.execute('''
-        SELECT a.*, s.name, s.roll_number 
-        FROM academics a 
-        JOIN students s ON a.student_id = s.id 
+        SELECT a.*, s.name, s.roll_number
+        FROM academics a
+        JOIN students s ON a.student_id = s.id
         ORDER BY a.date DESC LIMIT 20
     ''')
     academic_records = cursor.fetchall()
     cursor.close()
     conn.close()
-    
+
     return render_template('academics.html', students=students, academic_records=academic_records)
 
 @app.route('/add_academic', methods=['POST'])
 def add_academic():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    
+
     student_id = request.form['student_id']
     subject = request.form['subject']
     test_name = request.form['test_name']
     marks = request.form['marks']
     total_marks = request.form['total_marks']
     date = request.form['date']
-    
+
     conn = get_db()
+    if conn is None:
+        flash('Database connection failed!')
+        return redirect(url_for('academics'))
+
     cursor = conn.cursor()
     cursor.execute("INSERT INTO academics (student_id, subject, test_name, marks, total_marks, date) VALUES (%s, %s, %s, %s, %s, %s)",
                    (student_id, subject, test_name, marks, total_marks, date))
     conn.commit()
     cursor.close()
     conn.close()
-    
+
     flash('Academic record added successfully!')
     return redirect(url_for('academics'))
 
@@ -365,44 +403,52 @@ def add_academic():
 def activity():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    
+
     conn = get_db()
+    if conn is None:
+        flash('Database connection failed!')
+        return redirect(url_for('login'))
+
     cursor = get_dict_cursor(conn)
-    
+
     cursor.execute("SELECT * FROM students ORDER BY roll_number")
     students = cursor.fetchall()
-    
+
     cursor.execute('''
-        SELECT a.*, s.name, s.roll_number 
-        FROM activities a 
-        JOIN students s ON a.student_id = s.id 
+        SELECT a.*, s.name, s.roll_number
+        FROM activities a
+        JOIN students s ON a.student_id = s.id
         ORDER BY a.date DESC LIMIT 20
     ''')
     activity_records = cursor.fetchall()
     cursor.close()
     conn.close()
-    
+
     return render_template('activity.html', students=students, activity_records=activity_records)
 
 @app.route('/add_activity', methods=['POST'])
 def add_activity():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    
+
     student_id = request.form['student_id']
     activity_name = request.form['activity_name']
     participation_type = request.form['participation_type']
     date = request.form['date']
     remarks = request.form['remarks']
-    
+
     conn = get_db()
+    if conn is None:
+        flash('Database connection failed!')
+        return redirect(url_for('activity'))
+
     cursor = conn.cursor()
     cursor.execute("INSERT INTO activities (student_id, activity_name, participation_type, date, remarks) VALUES (%s, %s, %s, %s, %s)",
                    (student_id, activity_name, participation_type, date, remarks))
     conn.commit()
     cursor.close()
     conn.close()
-    
+
     flash('Activity record added successfully!')
     return redirect(url_for('activity'))
 
