@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import mysql.connector
-from mysql.connector import errorcode
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.secret_key = 'classrep-secret-key-2024'
@@ -9,18 +10,20 @@ app.secret_key = 'classrep-secret-key-2024'
 # Database setup
 def init_db():
     try:
-        conn = mysql.connector.connect(
-            user='root',
-            password='prince',
-            host='127.0.0.1',
-            database='classrep_db'
+        conn = psycopg2.connect(
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            host=os.getenv('DB_HOST'),
+            port=os.getenv('DB_PORT', '5432'),
+            database=os.getenv('DB_NAME'),
+            sslmode='require'
         )
         cursor = conn.cursor()
 
-        # Create tables if not exist (same schema as before)
+        # Create tables if not exist (PostgreSQL syntax)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS students (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 roll_number VARCHAR(255) UNIQUE NOT NULL,
                 name VARCHAR(255) NOT NULL,
                 class_name VARCHAR(255) NOT NULL,
@@ -30,49 +33,45 @@ def init_db():
 
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS attendance (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                student_id INT,
+                id SERIAL PRIMARY KEY,
+                student_id INTEGER REFERENCES students(id),
                 date DATE NOT NULL,
                 status VARCHAR(50) NOT NULL,
-                notes TEXT,
-                FOREIGN KEY (student_id) REFERENCES students(id)
+                notes TEXT
             )
         ''')
 
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS behavior (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                student_id INT,
+                id SERIAL PRIMARY KEY,
+                student_id INTEGER REFERENCES students(id),
                 date DATE NOT NULL,
                 incident_type VARCHAR(255) NOT NULL,
                 description TEXT NOT NULL,
-                action_taken TEXT,
-                FOREIGN KEY (student_id) REFERENCES students(id)
+                action_taken TEXT
             )
         ''')
 
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS academics (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                student_id INT,
+                id SERIAL PRIMARY KEY,
+                student_id INTEGER REFERENCES students(id),
                 subject VARCHAR(255) NOT NULL,
                 test_name VARCHAR(255) NOT NULL,
-                marks INT NOT NULL,
-                total_marks INT NOT NULL,
-                date DATE NOT NULL,
-                FOREIGN KEY (student_id) REFERENCES students(id)
+                marks INTEGER NOT NULL,
+                total_marks INTEGER NOT NULL,
+                date DATE NOT NULL
             )
         ''')
 
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS activities (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                student_id INT,
+                id SERIAL PRIMARY KEY,
+                student_id INTEGER REFERENCES students(id),
                 activity_name VARCHAR(255) NOT NULL,
                 participation_type VARCHAR(255) NOT NULL,
                 date DATE NOT NULL,
-                remarks TEXT,
-                FOREIGN KEY (student_id) REFERENCES students(id)
+                remarks TEXT
             )
         ''')
 
@@ -94,26 +93,28 @@ def init_db():
         conn.commit()
         cursor.close()
         conn.close()
-    except mysql.connector.Error as err:
+    except psycopg2.Error as err:
         print(f"Error: {err}")
 
 # Helper function to get database connection
 def get_db():
     try:
-        conn = mysql.connector.connect(
-            user='root',
-            password='prince',
-            host='127.0.0.1',
-            database='classrep_db'
+        conn = psycopg2.connect(
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            host=os.getenv('DB_HOST'),
+            port=os.getenv('DB_PORT', '5432'),
+            database=os.getenv('DB_NAME'),
+            sslmode='require'
         )
         return conn
-    except mysql.connector.Error as err:
+    except psycopg2.Error as err:
         print(f"Error: {err}")
         return None
 
 # Helper function to get a cursor with dictionary=True
 def get_dict_cursor(conn):
-    return conn.cursor(dictionary=True)
+    return conn.cursor(cursor_factory=RealDictCursor)
 
 # Routes
 @app.route('/')
@@ -144,24 +145,28 @@ def logout():
 def dashboard():
     if 'logged_in' not in session:
         return redirect(url_for('login'))
-    
+
     conn = get_db()
-    cursor = conn.cursor(dictionary=True)
-    
+    if conn is None:
+        flash('Database connection failed!')
+        return redirect(url_for('login'))
+
+    cursor = get_dict_cursor(conn)
+
     # Get counts
     cursor.execute("SELECT COUNT(*) as total FROM students")
     total_students = cursor.fetchone()['total']
-    
-    cursor.execute("SELECT COUNT(*) as total FROM attendance WHERE date = CURDATE()")
+
+    cursor.execute("SELECT COUNT(*) as total FROM attendance WHERE date = CURRENT_DATE")
     today_attendance = cursor.fetchone()['total']
-    
-    cursor.execute("SELECT COUNT(*) as total FROM behavior WHERE date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)")
+
+    cursor.execute("SELECT COUNT(*) as total FROM behavior WHERE date >= CURRENT_DATE - INTERVAL '7 days'")
     recent_behavior = cursor.fetchone()['total']
-    
+
     cursor.close()
     conn.close()
-    
-    return render_template('dashboard.html', 
+
+    return render_template('dashboard.html',
                          total_students=total_students,
                          today_attendance=today_attendance,
                          recent_behavior=recent_behavior)
@@ -401,6 +406,8 @@ def add_activity():
     flash('Activity record added successfully!')
     return redirect(url_for('activity'))
 
+# Initialize database on app startup
+init_db()
+
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True)
