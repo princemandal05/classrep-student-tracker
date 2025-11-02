@@ -10,7 +10,13 @@ app.secret_key = 'classrep-secret-key-2024'
 # Database setup
 def init_db():
     try:
-        conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+        conn = psycopg2.connect(
+            host=os.getenv('DB_HOST'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            database=os.getenv('DB_NAME'),
+            port=os.getenv('DB_PORT')
+        )
         cursor = conn.cursor()
 
         # Create tables if not exist (PostgreSQL syntax)
@@ -94,7 +100,13 @@ def init_db():
 # Helper function to get database connection
 def get_db():
     try:
-        conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+        conn = psycopg2.connect(
+            host=os.getenv('DB_HOST'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            database=os.getenv('DB_NAME'),
+            port=os.getenv('DB_PORT')
+        )
         return conn
     except psycopg2.Error as err:
         print(f"Error: {err}")
