@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ClassRep Student Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Dashboard</h1>
+        <p class="text-muted">Welcome back, Class Representative!</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary clickable-card" onclick="location.href='{{ url_for('students') }}'">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ total_students }}</h4>
+                        <p>Total Students</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success clickable-card" onclick="location.href='{{ url_for('attendance') }}'">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ today_attendance }}</h4>
+                        <p>Today's Attendance</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning clickable-card" onclick="location.href='{{ url_for('behavior') }}'">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ recent_behavior }}</h4>
+                        <p>Recent Behavior</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info clickable-card" onclick="location.href='{{ url_for('activity') }}'">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>View Activities</h4>
+                        <p>Co-curricular Participation</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-bullseye fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('attendance') }}" class="btn btn-outline-primary">Add Attendance</a>
+                    <a href="{{ url_for('behavior') }}" class="btn btn-outline-warning">Log Behavior</a>
+                    <a href="{{ url_for('academics') }}" class="btn btn-outline-info">Add Academic Record</a>
+                    <a href="{{ url_for('activity') }}" class="btn btn-outline-success">Track Activity</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Links</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><a href="{{ url_for('students') }}" class="text-decoration-none">📋 Manage Students</a></li>
+                    <li><a href="{{ url_for('attendance') }}" class="text-decoration-none">✅ Attendance Records</a></li>
+                    <li><a href="{{ url_for('behavior') }}" class="text-decoration-none">⚠️ Behavior Incidents</a></li>
+                    <li><a href="{{ url_for('academics') }}" class="text-decoration-none">🎯 Academic Records</a></li>
+                    <li><a href="{{ url_for('activity') }}" class="text-decoration-none">🎭 Activity Participation</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

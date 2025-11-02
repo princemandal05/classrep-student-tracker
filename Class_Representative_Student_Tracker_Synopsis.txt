@@ -1,0 +1,39 @@
+# Class Representative Student Tracker - Project Synopsis
+
+## Project Title
+Class Representative Student Tracker
+
+## Introduction & Objective
+A Java Swing desktop application designed to help class representatives efficiently manage student information through digital record keeping, reducing paperwork and improving data accuracy.
+
+## Scope
+- Student registration with name, roll number, age, gender, course, and address
+- Data storage in text files for easy access
+- Simple CRUD operations (Create, Read, Update, Clear)
+- User-friendly desktop interface
+
+## Tools & Technologies
+- Java (JDK 8+)
+- Java Swing for GUI
+- File I/O for data persistence
+- Cross-platform compatibility
+
+## Methodology
+1. Design intuitive user interface
+2. Implement form validation
+3. Create file handling system
+4. Test complete functionality
+5. Package for deployment
+
+## Expected Outcome
+- Fully functional desktop application
+- Reduced manual paperwork
+- Improved data accuracy
+- Easy student record management
+
+## Timeline
+- Week 1: Design & Development
+- Week 2: Testing & Deployment
+
+## Conclusion
+A practical solution for class representatives to manage student records efficiently using modern desktop technology.

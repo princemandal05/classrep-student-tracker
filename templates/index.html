@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Home - ClassRep Student Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="jumbotron bg-light p-5 rounded text-center">
+            <h1 class="display-4">Welcome to ClassRep Student Tracker</h1>
+            <p class="lead">A comprehensive tool for class representatives to manage student records including attendance, behavior, academics, and activities.</p>
+            <hr class="my-4">
+            <p>Track and manage all aspects of your class with ease.</p>
+            {% if not session.logged_in %}
+            <a class="btn btn-primary btn-lg" href="{{ url_for('login') }}" role="button">Login to Continue</a>
+            {% else %}
+            <a class="btn btn-primary btn-lg" href="{{ url_for('dashboard') }}" role="button">Go to Dashboard</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">📚 Students</h5>
+                <p class="card-text">Manage student profiles and information</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">✅ Attendance</h5>
+                <p class="card-text">Track daily attendance records</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">⚠️ Behavior</h5>
+                <p class="card-text">Log and monitor behavior incidents</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">🎯 Activities</h5>
+                <p class="card-text">Track co-curricular participation</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
